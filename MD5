@@ -1,12 +1,13 @@
-1bad222fa1fa4b952f7178fc4dd4ede5 *DESCRIPTION
+431f3a4da273591228b4408ac9aee25e *DESCRIPTION
 799aee513498a2617de1f1ede2f904e2 *LICENSE
 582f7364f6aae5b31d4d5b6a2924a5c3 *NAMESPACE
-16c66df45b574220cf2289136add7dd7 *NEWS.md
+11ce58f486924c9b131433b69fbf8108 *NEWS.md
 f537f8dbee655e0cbaa04dcda6d5b7db *R/package.R
-17fe371f3cb5ce98bf6a3468973fd3ef *R/txtq.R
+3e5d365a0bafec66929fe6bd54947e17 *R/txtq.R
 ca6ef6a0a6c081e93a07549780972efb *README.md
+6d77f618fb220f578ce0a26d0bf3e7a9 *inst/WORDLIST
 6af8cfa13ec05b24e6cf1efd72cc28ef *man/R6_txtq.Rd
 5fe4ebca7ccae40e45177761b1c05ad0 *man/txtq-package.Rd
 3d1e43bf8ae337765967dd233c595b69 *man/txtq.Rd
 0806690563c39eea3dc214e775a16583 *tests/testthat.R
-7d9be58c94468a9275fcff02887014b9 *tests/testthat/test-txtq.R
+77bfab58a4e6a0e67c0120b2a0f0d4d4 *tests/testthat/test-txtq.R
