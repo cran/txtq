@@ -9,7 +9,7 @@ Description: This queue is a data structure that lets
   log of all the messages ever pushed. File locking
   preserves the integrity of the data even when
   multiple processes access the queue simultaneously.
-Version: 0.1.2
+Version: 0.1.3
 License: MIT + file LICENSE
 URL: https://github.com/wlandau/txtq
 BugReports: https://github.com/wlandau/txtq/issues
@@ -37,11 +37,11 @@ Encoding: UTF-8
 Language: en-US
 RoxygenNote: 6.1.1
 NeedsCompilation: no
-Packaged: 2019-01-06 19:20:31 UTC; landau
+Packaged: 2019-06-23 14:20:46 UTC; landau
 Author: William Michael Landau [aut, cre]
     (<https://orcid.org/0000-0003-1878-3253>),
   Ian E. Fellows [ctb],
   Eli Lilly and Company [cph]
 Maintainer: William Michael Landau <will.landau@gmail.com>
 Repository: CRAN
-Date/Publication: 2019-01-06 21:00:02 UTC
+Date/Publication: 2019-06-23 14:40:03 UTC
