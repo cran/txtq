@@ -1,3 +1,8 @@
+# Version 0.2.0
+
+- Add the `import()` method.
+- Bugfix: make `pop(0)` and `list(0)` return no messages.
+
 # Version 0.1.6
 
 - Fix indexing issue when pushing message of length 0 (#15, @daroczig).

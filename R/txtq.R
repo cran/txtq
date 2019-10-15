@@ -72,6 +72,22 @@
 #'   # This whole time, the queue was locked when either Process A
 #'   # or Process B accessed it. That way, the data stays correct
 #'   # no matter who is accessing/modifying the queue and when.
+#'   #
+#'   # You can import a `txtq` into another `txtq`.
+#'   # The unpopped messages are grouped together
+#'   # and sorted by timestamp.
+#'   # Same goes for the popped messages.
+#'   q_from <- txtq(tempfile())
+#'   q_to <- txtq(tempfile())
+#'   q_from$push(title = "from", message = "popped")
+#'   q_from$push(title = "from", message = "unpopped")
+#'   q_to$push(title = "to", message = "popped")
+#'   q_to$push(title = "to", message = "unpopped")
+#'   q_from$pop()
+#'   q_to$pop()
+#'   q_to$import(q_from)
+#'   q_to$list()
+#'   q_to$log()
 txtq <- function(path) {
   R6_txtq$new(path = path)
 }
@@ -169,7 +185,7 @@ R6_txtq <- R6::R6Class(
       private$txtq_push(title = keep$title, message = keep$message)
     },
     txtq_log = function() {
-      if (length(scan(private$db_file, quiet = TRUE, what = character())) < 1){
+      if (length(scan(private$db_file, quiet = TRUE, what = character())) < 1) {
         return(null_log)
       }
       read_db_table(
@@ -178,8 +194,8 @@ R6_txtq <- R6::R6Class(
         n = -1
       )
     },
-    txtq_list = function(n){
-      if (private$txtq_count() < 1) {
+    txtq_list = function(n) {
+      if (n == 0L || private$txtq_count() < 1L) {
         return(null_log)
       }
       read_db_table(
@@ -193,10 +209,40 @@ R6_txtq <- R6::R6Class(
       assert_file(private$db_file)
       assert_file_scalar(private$head_file)
       assert_file_scalar(private$total_file)
+    },
+    txtq_import = function(queue) {
+      stopifnot(inherits(queue, "R6_txtq"))
+      ext_log <- queue$log()
+      ext_total <- queue$total()
+      ext_count <- queue$count()
+      ext_head <- ext_total - ext_count
+      ext_popped <- seq_len(ext_total) <= ext_head
+      this_log <- private$txtq_log()
+      this_total <- private$txtq_get_total()
+      this_head <- private$txtq_get_head()
+      this_popped <- seq_len(this_total) <= this_head
+      # nolint start
+      new_popped <- rbind(
+        ext_log[ext_popped,, drop = FALSE],
+        this_log[this_popped,, drop = FALSE]
+      )
+      new_unpopped <- rbind(
+        ext_log[!ext_popped,, drop = FALSE],
+        this_log[!this_popped,, drop = FALSE]
+      )
+      new_popped <- new_popped[order(new_popped$time),, drop = FALSE]
+      new_unpopped <- new_unpopped[order(new_unpopped$time),, drop = FALSE]
+      # nolint end
+      new_log <- rbind(new_popped, new_unpopped)
+      unlink(private$db_file)
+      file_create(private$db_file)
+      private$txtq_push(title = new_log$title, message = new_log$message)
+      new_head <- this_head + ext_total - ext_count
+      private$txtq_set_head(new_head)
     }
   ),
   public = list(
-    initialize = function(path){
+    initialize = function(path) {
       private$txtq_establish(path)
     },
     path = function() {
@@ -222,19 +268,29 @@ R6_txtq <- R6::R6Class(
     },
     push = function(title, message) {
       private$txtq_exclusive(
-        private$txtq_push(title = title, message = message))
+        private$txtq_push(title = title, message = message)
+      )
+      invisible()
     },
     reset = function() {
       private$txtq_exclusive(private$txtq_reset())
+      invisible()
     },
     clean = function() {
       private$txtq_exclusive(private$txtq_clean())
+      invisible()
     },
     destroy = function() {
       unlink(private$path_dir, recursive = TRUE, force = TRUE)
+      invisible()
     },
     validate = function() {
       private$txtq_validate()
+      invisible()
+    },
+    import = function(queue) {
+      private$txtq_exclusive(private$txtq_import(queue = queue))
+      invisible()
     }
   )
 )
