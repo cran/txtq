@@ -9,7 +9,7 @@ Description: This queue is a data structure that lets
   log of all the messages ever pushed. File locking
   preserves the integrity of the data even when
   multiple processes access the queue simultaneously.
-Version: 0.2.0
+Version: 0.2.3
 License: MIT + file LICENSE
 URL: https://github.com/wlandau/txtq
 BugReports: https://github.com/wlandau/txtq/issues
@@ -31,17 +31,17 @@ Authors@R: c(
     family = "Eli Lilly and Company",
     role = "cph"
   ))
-Imports: base64url, filelock, R6
+Imports: base64url, filelock (>= 1.0.2), R6
 Suggests: parallel, purrr, testthat (>= 2.1.0)
 Encoding: UTF-8
 Language: en-US
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0
 NeedsCompilation: no
-Packaged: 2019-10-15 00:04:28 UTC; landau
+Packaged: 2020-06-23 14:55:27 UTC; landau
 Author: William Michael Landau [aut, cre]
     (<https://orcid.org/0000-0003-1878-3253>),
   Ian E. Fellows [ctb],
   Eli Lilly and Company [cph]
 Maintainer: William Michael Landau <will.landau@gmail.com>
 Repository: CRAN
-Date/Publication: 2019-10-15 06:00:02 UTC
+Date/Publication: 2020-06-23 15:20:02 UTC

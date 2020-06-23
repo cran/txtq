@@ -1,3 +1,16 @@
+# Version 0.2.3
+
+- Set a default for `use_lock_file` in the constructor.
+
+# Version 0.2.2
+
+- Skip some tests on CRAN to avoid parallel socket brittleness.
+
+# Version 0.2.1
+
+- Add R6 docstrings.
+- Add a `use_lock_file` argument to allow users to disable the lock file (#18).
+
 # Version 0.2.0
 
 - Add the `import()` method.

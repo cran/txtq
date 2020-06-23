@@ -6,6 +6,10 @@
 #' @param path Character string giving the file path of the queue.
 #'   The `txtq()` function creates a folder at this path to store
 #'   the messages.
+#' @param use_lock_file Logical, whether to use a lock file
+#'   for blocking operations. Should only be `FALSE` in specialized
+#'   use cases with no parallel computing (for example, when a
+#'   `txtq` is used as a database and accessed by only one process.)
 #' @examples
 #'   path <- tempfile() # Define a path to your queue.
 #'   q <- txtq(path) # Create a new queue or recover an existing one.
@@ -88,8 +92,8 @@
 #'   q_to$import(q_from)
 #'   q_to$list()
 #'   q_to$log()
-txtq <- function(path) {
-  R6_txtq$new(path = path)
+txtq <- function(path, use_lock_file = TRUE) {
+  R6_txtq$new(path = path, use_lock_file = use_lock_file)
 }
 
 #' @title R6 class for `txtq` objects
@@ -104,13 +108,15 @@ R6_txtq <- R6::R6Class(
     head_file = character(0),
     lock_file = character(0),
     total_file = character(0),
-    txtq_establish = function(path) {
+    use_lock_file = logical(0),
+    txtq_establish = function(path, use_lock_file) {
       dir_create(path)
       private$path_dir <- path
       private$db_file <- file.path(private$path_dir, "db")
       private$head_file <- file.path(private$path_dir, "head")
       private$total_file <- file.path(private$path_dir, "total")
       private$lock_file <- file.path(private$path_dir, "lock")
+      private$use_lock_file <- use_lock_file
       private$txtq_exclusive({
         file_create(private$db_file)
         if (!file.exists(private$head_file)) {
@@ -123,8 +129,10 @@ R6_txtq <- R6::R6Class(
       private$txtq_validate()
     },
     txtq_exclusive = function(code) {
-      on.exit(filelock::unlock(lock))
-      lock <- filelock::lock(private$lock_file)
+      if (private$use_lock_file) {
+        on.exit(filelock::unlock(lock))
+        lock <- filelock::lock(private$lock_file)
+      }
       force(code)
     },
     txtq_get_head = function() {
@@ -242,52 +250,78 @@ R6_txtq <- R6::R6Class(
     }
   ),
   public = list(
-    initialize = function(path) {
-      private$txtq_establish(path)
+    #' @description Initialize a txtq.
+    #' @param path Character string giving the file path of the queue.
+    #'   The `txtq()` function creates a folder at this path to store
+    #'   the messages.
+    #' @param use_lock_file Logical, whether to use a lock file
+    #'   for blocking operations. Should only be `FALSE` in specialized
+    #'   use cases with no parallel computing (for example, when a
+    #'   `txtq` is used as a database and accessed by only one process.)
+    initialize = function(path, use_lock_file = TRUE) {
+      private$txtq_establish(path, use_lock_file)
     },
+    #' @description Get the txtq path.
     path = function() {
       private$path_dir
     },
+    #' @description Get the number of messages in the queue.
     count = function() {
       private$txtq_exclusive(private$txtq_count())
     },
+    #' @description Get the number of messages in the database.
     total = function() {
       private$txtq_exclusive(private$txtq_get_total())
     },
+    #' @description Detect whether the txtq is empty.
     empty = function() {
       private$txtq_exclusive(private$txtq_count()) < 1
     },
+    #' @description List the whole database.
     log = function() {
       private$txtq_exclusive(private$txtq_log())
     },
+    #' @description List messages.
+    #' @param n Number of messages.
     list = function(n = -1) {
       private$txtq_exclusive(private$txtq_list(n = n))
     },
+    #' @description Pop messages.
+    #' @param n Number of messages.
     pop = function(n = 1) {
       private$txtq_exclusive(private$txtq_pop(n = n))
     },
+    #' @description Push messages.
+    #' @param title Titles of the messages.
+    #' @param message Contents of the messages.
     push = function(title, message) {
       private$txtq_exclusive(
         private$txtq_push(title = title, message = message)
       )
       invisible()
     },
+    #' @description Reset the txtq.
     reset = function() {
       private$txtq_exclusive(private$txtq_reset())
       invisible()
     },
+    #' @description Clean the txtq.
     clean = function() {
       private$txtq_exclusive(private$txtq_clean())
       invisible()
     },
+    #' @description Destroy the txtq.
     destroy = function() {
       unlink(private$path_dir, recursive = TRUE, force = TRUE)
       invisible()
     },
+    #' @description Validate the txtq.
     validate = function() {
       private$txtq_validate()
       invisible()
     },
+    #' @description Import another txtq.
+    #' @param queue External txtq to import.
     import = function(queue) {
       private$txtq_exclusive(private$txtq_import(queue = queue))
       invisible()
