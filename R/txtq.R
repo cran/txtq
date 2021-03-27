@@ -10,6 +10,17 @@
 #'   for blocking operations. Should only be `FALSE` in specialized
 #'   use cases with no parallel computing (for example, when a
 #'   `txtq` is used as a database and accessed by only one process.)
+#' @section NFS:
+#'    As an interprocess communication tool,
+#'   `txtq` relies on the [`filelock`](https://github.com/r-lib/filelock)
+#'   package to prevent race conditions.
+#'   Unfortunately, `filelock` cannot prevent race conditions
+#'   on network file systems (NFS), which means neither can `txtq`.
+#'   In other words, on certain common kinds of clusters,
+#'   `txtq` cannot reliably manage interprocess communication
+#'   for processes on different computers.
+#'   However, it can still serve as a low-tech replacement
+#'   for a simple non-threadsafe database.
 #' @examples
 #'   path <- tempfile() # Define a path to your queue.
 #'   q <- txtq(path) # Create a new queue or recover an existing one.
@@ -150,7 +161,7 @@ R6_txtq <- R6::R6Class(
     # Faster than txtq_get_total and txtq_set_total
     # because it uses fewer connections:
     txtq_inc_total = function(n) {
-      con <- file(private$total_file, "r+w")
+      con <- file(private$total_file, "r+")
       on.exit(close(con))
       old <- scan(con, quiet = TRUE, what = integer())
       out <- old + as.integer(n)
